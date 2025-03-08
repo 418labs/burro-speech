@@ -1,5 +1,5 @@
 const HF_API_TOKEN = process.env.NEXT_PUBLIC_HF_API_TOKEN;
-const API_URL = 'https://router.huggingface.co/hf-inference/v1';
+const API_URL = 'https://router.huggingface.co/hf-inference/models/facebook/seamless-m4t-v2-large';
 
 interface TranslationOptions {
   targetLanguage: string; // Target language code (e.g., "spa" for Spanish, "eng" for English)
@@ -26,6 +26,7 @@ class HuggingFaceService {
       const headers = {
         'Authorization': `Bearer ${HF_API_TOKEN}`,
         'Content-Type': 'application/json',
+        'x-wait-for-model': 'true',
       };
 
       // First convert the blob to base64
@@ -38,13 +39,13 @@ class HuggingFaceService {
         inputs: base64Audio,
         parameters: {
           // No need to specify source language (it's automatically detected)
-          tgt_lang: options.targetLanguage,
+          //tgt_lang: options.targetLanguage,
           // Setting to get only text (not audio)
-          generate_speech: false
+          //generateSpeech: false
         }
       });
 
-      const response = await fetch(`${API_URL}/automatic-speech-recognition`, {
+      const response = await fetch(`${API_URL}`, {
         method: 'POST',
         headers,
         body: params
