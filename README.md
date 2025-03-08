@@ -9,6 +9,7 @@
 
 - Framework: [Next.js](https://nextjs.org/)
 - UI Library: [Shadcn/ui](https://ui.shadcn.com/)
+- AI Library: [Hugging Face](http://huggingface.co/)
 
 ## 🚀 Running Locally
 
