@@ -1,6 +1,6 @@
 'use client';
 
-import { Plus, Minus } from 'lucide-react';
+import type React from 'react';
 
 interface SubtitleSettingsProps {
   settings: {
@@ -16,16 +16,8 @@ export function SubtitleSettings({ settings, onChange }: SubtitleSettingsProps) 
   const colors = ['white', 'yellow', 'cyan', 'lime'];
   const bgOpacities = [0.3, 0.5, 0.7, 0.9];
 
-  const decreaseFontSize = () => {
-    if (settings.fontSize > 16) {
-      onChange({ ...settings, fontSize: settings.fontSize - 2 });
-    }
-  };
-
-  const increaseFontSize = () => {
-    if (settings.fontSize < 36) {
-      onChange({ ...settings, fontSize: settings.fontSize + 2 });
-    }
+  const handleFontSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange({ ...settings, fontSize: Number.parseInt(e.target.value) });
   };
 
   const handlePositionChange = (position: string) => {
@@ -44,28 +36,15 @@ export function SubtitleSettings({ settings, onChange }: SubtitleSettingsProps) 
   return (
     <div className='space-y-4'>
       <div>
-        <label className='block text-sm font-medium mb-2'>Tamaño de texto: {settings.fontSize}px</label>
-        <div className='flex items-center gap-3'>
-          <button
-            onClick={decreaseFontSize}
-            className='flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors'
-            aria-label='Disminuir tamaño de texto'
-            disabled={settings.fontSize <= 16}
-          >
-            <Minus size={18} />
-          </button>
-
-          <div className='flex-1 text-center font-medium'>A</div>
-
-          <button
-            onClick={increaseFontSize}
-            className='flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors'
-            aria-label='Aumentar tamaño de texto'
-            disabled={settings.fontSize >= 36}
-          >
-            <Plus size={18} />
-          </button>
-        </div>
+        <label className='block text-sm font-medium mb-1'>Tamaño de texto: {settings.fontSize}px</label>
+        <input
+          type='range'
+          min='16'
+          max='36'
+          value={settings.fontSize}
+          onChange={handleFontSizeChange}
+          className='w-full'
+        />
       </div>
 
       <div>
