@@ -1,18 +1,28 @@
 'use client';
 
+<<<<<<< HEAD
+import { useState } from 'react';
+=======
 import { useEffect, useState, useCallback } from 'react';
 import type { Metadata } from 'next';
 import { Mic, MicOff, Settings, X, SwitchCamera } from 'lucide-react';
+>>>>>>> 0ebf832 (feat: wip speech recognition letsgooooooooooo)
 
 import { UrlInputModal } from '@/components/url-input-modal';
 import { Subtitles } from '@/components/subtitles';
+<<<<<<< HEAD
+import { useTranslation } from '@/hooks/use-translation';
 import { Navbar } from '@/components/navbar';
 
+export default function Page() {
+  const [contentUrl, setContentUrl] = useState('');
+  const [showUrlModal, setShowUrlModal] = useState(true);
 
+  const { translatedText, subtitleSettings } = useTranslation();
+=======
 import { SubtitleSettings } from '@/components/subtitle-settings';
 import useLiveTranslation from '@/hooks/useLiveTranslation';
 import useHuggingFaceSpeech from '@/hooks/useHuggingFaceSpeech';
-import { LanguageSelector } from '@/components/language-selector';
 
 import { siteConfig } from '@/config/site';
 
@@ -71,6 +81,7 @@ export default function Page() {
       startListening();
     }
   }, [isListening, startListening, stopListening]);
+>>>>>>> 0ebf832 (feat: wip speech recognition letsgooooooooooo)
 
   const handleUrlSubmit = (url: string) => {
     setContentUrl(url);
@@ -99,6 +110,10 @@ export default function Page() {
           </div>
         )}
 
+<<<<<<< HEAD
+        {/* Subtitles overlay */}
+        <Subtitles text={translatedText} settings={subtitleSettings} />
+=======
         {/* Floating control bar at the top */}
         <div className='absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/90 dark:bg-gray-800/90 rounded-full shadow-lg px-4 py-2 flex items-center gap-4 z-10'>
           <button
@@ -187,6 +202,7 @@ export default function Page() {
             {error}
           </div>
         )}
+>>>>>>> 0ebf832 (feat: wip speech recognition letsgooooooooooo)
       </div>
     </div>
   );
