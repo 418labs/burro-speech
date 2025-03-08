@@ -4,6 +4,7 @@ import { Mic, MicOff, Settings, X } from 'lucide-react';
 import { LanguageSelector } from './language-selector';
 import { SubtitleSettings } from './subtitle-settings';
 import { useTranslation } from '@/hooks/use-translation';
+import { Button } from './ui/button';
 
 export function Navbar() {
   const [showSettings, setShowSettings] = useState(false);
@@ -13,26 +14,17 @@ export function Navbar() {
 
   return (
     <>
-      <div className='absolute top-4 left-1/2 transform -translate-x-1/2 bg-white/90 dark:bg-gray-800/90 rounded-full shadow-lg px-4 py-2 flex items-center gap-4 z-10'>
-        <button
-          onClick={toggleRecording}
-          className={`rounded-full p-2 ${
-            isRecording ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary/90'
-          } text-white transition-colors flex items-center gap-2`}
-        >
-          {isRecording ? <MicOff size={18} /> : <Mic size={18} />}
-          <span>{isRecording ? 'Detener' : 'Comenzar ahora'}</span>
-        </button>
+      <div className='absolute z-10 right-4 flex items-center justify-center h-full'>
+        <div className='flex flex-col items-center gap-2 p-4 bg-white shadow-xl border rounded-xl'>
+          <Button size='lg' variant={isRecording ? 'destructive' : 'default'} onClick={toggleRecording}>
+            {isRecording ? <MicOff /> : <Mic />}
+            {/* <span>{isRecording ? 'Detener' : 'Comenzar ahora'}</span> */}
+          </Button>
 
-        <button
-          onClick={() => setShowSettings(!showSettings)}
-          className='p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors'
-          aria-label='Configuración'
-        >
-          <Settings size={20} />
-        </button>
+          <Button size='lg' variant='outline' onClick={() => setShowSettings(!showSettings)} aria-label='Configuración'>
+            <Settings />
+          </Button>
 
-        <div className='w-[140px]'>
           <LanguageSelector
             value={translationOptions.targetLanguage}
             onChange={(e: any) => setTargetLanguage(e.target.value)}
