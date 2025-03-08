@@ -125,8 +125,6 @@ export function useTranslation() {
     return () => clearInterval(interval);
   }, [isRecording, translationOptions.targetLanguage]);
 
-  console.log('translatedText', translatedText);
-
   // Devolver todos los estados y funciones necesarios
   return {
     // Estados
