@@ -3,16 +3,9 @@
 import { ChevronDown } from 'lucide-react';
 
 const languages = [
-  { code: 'es', name: 'Español' },
-  { code: 'en', name: 'Inglés' },
-  { code: 'fr', name: 'Francés' },
-  { code: 'de', name: 'Alemán' },
-  { code: 'it', name: 'Italiano' },
-  { code: 'pt', name: 'Portugués' },
-  { code: 'zh', name: 'Chino' },
-  { code: 'ja', name: 'Japonés' },
-  { code: 'ko', name: 'Coreano' },
-  { code: 'ru', name: 'Ruso' },
+  { code: 'es', name: 'ES' },
+  { code: 'en', name: 'EN' },
+  { code: 'pt', name: 'PT' },
 ];
 
 interface LanguageSelectorProps {
