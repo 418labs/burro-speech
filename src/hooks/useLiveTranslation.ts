@@ -9,6 +9,8 @@ declare global {
 }
 
 type UseLiveTranslationProps = {
+  initialSourceLanguage: string;
+  initialTargetLanguage: string;
   autoStart?: boolean;
   onTranscriptUpdate?: (text: string) => void;
   onTranslationUpdate?: (text: string) => void;
@@ -16,6 +18,8 @@ type UseLiveTranslationProps = {
 
 const useLiveTranslation = ({
   autoStart = false,
+  initialSourceLanguage,
+  initialTargetLanguage,
   onTranscriptUpdate,
   onTranslationUpdate,
 }: UseLiveTranslationProps) => {
@@ -24,8 +28,8 @@ const useLiveTranslation = ({
   const [translatedText, setTranslatedText] = useState<string>('');
   const [error, setError] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
-  const [sourceLanguage, setSourceLanguage] = useState('es-AR');
-  const [targetLanguage, setTargetLanguage] = useState('en-US');
+  const [sourceLanguage, setSourceLanguage] = useState(initialSourceLanguage);
+  const [targetLanguage, setTargetLanguage] = useState(initialTargetLanguage);
   
   // References for managing subtitle content
   const recognitionRef = useRef<any>(null);
