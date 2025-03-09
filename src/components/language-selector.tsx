@@ -1,11 +1,19 @@
 'use client';
 
 import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 
 const languages = [
-  { code: 'es', name: 'ES' },
-  { code: 'en', name: 'EN' },
-  { code: 'pt', name: 'PT' },
+  { code: 'en-US', name: 'EN' },
+  { code: 'es-AR', name: 'ES' },
+  { code: 'fr-FR', name: 'FR' },
+  { code: 'de-DE', name: 'DE' },
+  { code: 'it-IT', name: 'IT' },
+  { code: 'pt-BR', name: 'PT' },
+  { code: 'ja-JP', name: 'JA' },
+  { code: 'zh-CN', name: 'ZH' },
+  { code: 'ru-RU', name: 'RU' },
+  { code: 'ar-SA', name: 'AR' },
 ];
 
 interface LanguageSelectorProps {
@@ -13,12 +21,16 @@ interface LanguageSelectorProps {
   onChange: (value: string) => void;
 }
 
-export function LanguageSelector({ value, onChange }: LanguageSelectorProps) {
+export function LanguageSelector({ value: initialValue, onChange }: LanguageSelectorProps) {
+  const [selectedLanguage, setSelectedLanguage] = useState(initialValue);
   return (
     <div className='relative'>
       <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={selectedLanguage}
+        onChange={(e) => {
+            onChange(e.target.value)
+            setSelectedLanguage(e.target.value);
+        }}
         className='appearance-none w-full bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-primary'
       >
         {languages.map((language) => (

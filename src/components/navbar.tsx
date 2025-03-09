@@ -1,24 +1,63 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Mic, MicOff, Settings, X } from 'lucide-react';
 
 import { LanguageSelector } from './language-selector';
 import { SubtitleSettings } from './subtitle-settings';
-import { useTranslation } from '@/hooks/use-translation';
 import { Button } from './ui/button';
+import useLiveTranslation from '@/hooks/useLiveTranslation';
+import { SubtitleSettingsProps } from './subtitle-settings';
 
-export function Navbar() {
+type NavbarProps ={
+    setTranslatedText: (text: string) => void;
+    setOriginalText: (text: string) => void;
+} & SubtitleSettingsProps;
+
+export function Navbar({
+    settings: subtitleSettings,
+    onChange: setSubtitleSettings,
+    setTranslatedText,
+    setOriginalText,
+}: NavbarProps) {
   const [showSettings, setShowSettings] = useState(false);
 
-  const { isRecording, translationOptions, subtitleSettings, toggleRecording, setTargetLanguage, setSubtitleSettings } =
-    useTranslation();
+  // Setup live translation with Next.js API route
+  const liveTranslation = useLiveTranslation({
+    autoStart: false,
+  });
+
+  const {
+    isListening,
+    originalText,
+    translatedText,
+    startListening,
+    stopListening,
+    setSourceLanguage,
+    setTargetLanguage,
+  } =  liveTranslation;
+
+  useEffect(() => {
+      setOriginalText(originalText);
+  }, [ originalText]);
+
+  useEffect(() => {
+      setTranslatedText(translatedText);
+  }, [ translatedText]);
+ 
+  // Toggle recording function
+  const toggleRecording = useCallback(() => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  }, [isListening, startListening, stopListening]);
 
   return (
     <>
       <div className='absolute z-10 right-4 flex items-center justify-center h-full'>
         <div className='flex flex-col items-center gap-2 p-4 bg-white shadow-xl border rounded-xl'>
-          <Button size='lg' variant={isRecording ? 'destructive' : 'default'} onClick={toggleRecording}>
-            {isRecording ? <MicOff /> : <Mic />}
-            {/* <span>{isRecording ? 'Detener' : 'Comenzar ahora'}</span> */}
+          <Button size='lg' variant={isListening ? 'destructive' : 'default'} onClick={toggleRecording}>
+            {isListening ? <MicOff /> : <Mic />}
           </Button>
 
           <Button size='lg' variant='outline' onClick={() => setShowSettings(!showSettings)} aria-label='Configuración'>
@@ -26,8 +65,13 @@ export function Navbar() {
           </Button>
 
           <LanguageSelector
-            value={translationOptions.targetLanguage}
-            onChange={(e: any) => setTargetLanguage(e.target.value)}
+            value={'es-AR'}
+            onChange={setSourceLanguage}
+          />
+
+          <LanguageSelector
+            value={'en-US'}
+            onChange={setTargetLanguage}
           />
         </div>
       </div>

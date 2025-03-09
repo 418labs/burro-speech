@@ -9,16 +9,12 @@ declare global {
 }
 
 type UseLiveTranslationProps = {
-  sourceLanguage: string;
-  targetLanguage: string;
   autoStart?: boolean;
   onTranscriptUpdate?: (text: string) => void;
   onTranslationUpdate?: (text: string) => void;
 }
 
 const useLiveTranslation = ({
-  sourceLanguage = 'es-ES',
-  targetLanguage = 'en',
   autoStart = false,
   onTranscriptUpdate,
   onTranslationUpdate,
@@ -28,6 +24,8 @@ const useLiveTranslation = ({
   const [translatedText, setTranslatedText] = useState<string>('');
   const [error, setError] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
+  const [sourceLanguage, setSourceLanguage] = useState('es-AR');
+  const [targetLanguage, setTargetLanguage] = useState('en-US');
   
   // References for managing subtitle content
   const recognitionRef = useRef<any>(null);
@@ -44,6 +42,86 @@ const useLiveTranslation = ({
   // Keep track of transcript buffers 
   const finalTranscriptRef = useRef<string>('');
   const recentWordsBufferRef = useRef<string[]>([]); // Buffer of recent words
+
+  const callTranslationAPI = useCallback((text: string) => {
+    console.log('Making API call with:', { text, sourceLanguage, targetLanguage });
+    return fetch('/api/translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text,
+          sourceLanguage,
+          targetLanguage,
+        }),
+      });
+  }, [sourceLanguage, targetLanguage]);
+
+  // Translate text using the API with queue-based subtitle approach
+  const translateText = useCallback(async (text: string) => {
+    if (!text.trim()) return;
+    
+    console.log('Starting translation API call for:', text);
+    setIsTranslating(true);
+    try {
+      const response = await callTranslationAPI(text);
+      
+      if (!response.ok) {
+        throw new Error(`Translation failed: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Translation received:', data.translation);
+      
+      const translation = data.translation.trim();
+      
+      if (translation) {
+        console.log("Received translation:", translation);
+        
+        // Store the current translation
+        currentTranslationRef.current = translation;
+        currentLineRef.current = translation;
+        
+        // Just update with the current line - keep it simple
+        setTranslatedText(currentLineRef.current);
+        if (onTranslationUpdate) onTranslationUpdate(currentLineRef.current);
+        
+        // Update the last activity timestamp
+        lastResultTimestampRef.current = Date.now();
+        
+        // Set an inactivity timeout to clear the subtitles after a pause
+        if (inactivityTimeoutRef.current) {
+          clearTimeout(inactivityTimeoutRef.current);
+        }
+        if (subtituleDisplayTimeoutRef.current) {
+          clearTimeout(subtituleDisplayTimeoutRef.current);
+        }
+        
+        inactivityTimeoutRef.current = setTimeout(() => {
+          // Clear displayed text
+          setOriginalText('');
+          if (onTranscriptUpdate) onTranscriptUpdate('');
+          
+          // Reset word buffers to ensure we start fresh with next phrase
+          recentWordsBufferRef.current = [];
+          finalTranscriptRef.current = '';
+        }, 250);
+        subtituleDisplayTimeoutRef.current = setTimeout(() => {
+          // Display the current line
+          setTranslatedText('');
+          if (onTranslationUpdate) onTranslationUpdate('');
+          currentTranslationRef.current = '';
+          currentLineRef.current = '';
+        }, 3000);
+      }
+    } catch (e: any) {
+      console.error('Translation error:', e);
+      setError(`Translation error: ${e.message}`);
+    } finally {
+      setIsTranslating(false);
+    }
+  }, [callTranslationAPI]);
   
   const initRecognition = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -61,7 +139,7 @@ const useLiveTranslation = ({
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = sourceLanguage;
+    recognition.lang = sourceLanguage
     
     // Use a local variable to track current results session
     let currentSession = {
@@ -174,85 +252,8 @@ const useLiveTranslation = ({
     };
     
     return recognition;
-  }, [sourceLanguage, onTranscriptUpdate]);
-  
-  // No need for sentence advancement in the super simple approach
-  
-  // Translate text using the API with queue-based subtitle approach
-  const translateText = async (text: string) => {
-    if (!text.trim()) return;
-    
-    console.log('Starting translation API call for:', text);
-    setIsTranslating(true);
-    try {
-      const response = await fetch('/api/translate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text,
-          sourceLanguage,
-          targetLanguage,
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Translation failed: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('Translation received:', data.translation);
-      
-      const translation = data.translation.trim();
-      
-      if (translation) {
-        console.log("Received translation:", translation);
-        
-        // Store the current translation
-        currentTranslationRef.current = translation;
-        currentLineRef.current = translation;
-        
-        // Just update with the current line - keep it simple
-        setTranslatedText(currentLineRef.current);
-        if (onTranslationUpdate) onTranslationUpdate(currentLineRef.current);
-        
-        // Update the last activity timestamp
-        lastResultTimestampRef.current = Date.now();
-        
-        // Set an inactivity timeout to clear the subtitles after a pause
-        if (inactivityTimeoutRef.current) {
-          clearTimeout(inactivityTimeoutRef.current);
-        }
-        if (subtituleDisplayTimeoutRef.current) {
-          clearTimeout(subtituleDisplayTimeoutRef.current);
-        }
-        
-        inactivityTimeoutRef.current = setTimeout(() => {
-          // Clear displayed text
-          setOriginalText('');
-          if (onTranscriptUpdate) onTranscriptUpdate('');
-          
-          // Reset word buffers to ensure we start fresh with next phrase
-          recentWordsBufferRef.current = [];
-          finalTranscriptRef.current = '';
-        }, 250);
-        subtituleDisplayTimeoutRef.current = setTimeout(() => {
-          // Display the current line
-          setTranslatedText('');
-          if (onTranslationUpdate) onTranslationUpdate('');
-          currentTranslationRef.current = '';
-          currentLineRef.current = '';
-        }, 3000);
-      }
-    } catch (e: any) {
-      console.error('Translation error:', e);
-      setError(`Translation error: ${e.message}`);
-    } finally {
-      setIsTranslating(false);
-    }
-  };
-  
+  }, [sourceLanguage, onTranscriptUpdate, translateText]);
+
   // Start listening
   const startListening = useCallback(() => {
     // Don't start if already listening
@@ -393,47 +394,6 @@ const useLiveTranslation = ({
     };
   }, [autoStart]); // Remove startListening from deps
   
-  // Track language changes to avoid unnecessary rerenders
-  const prevSourceLanguageRef = useRef(sourceLanguage);
-
-  // Update recognition language if sourceLanguage changes
-  useEffect(() => {
-    // Skip if language hasn't actually changed
-    if (prevSourceLanguageRef.current === sourceLanguage) {
-      return;
-    }
-    
-    console.log('Source language changed from', prevSourceLanguageRef.current, 'to:', sourceLanguage);
-    prevSourceLanguageRef.current = sourceLanguage;
-    
-    if (recognitionRef.current) {
-      recognitionRef.current.lang = sourceLanguage;
-      console.log('Updated recognition language to:', sourceLanguage);
-      
-      // If we're currently listening, restart to apply the new language
-      if (isListening) {
-        console.log('Restarting recognition due to language change');
-        
-        // Manually stop and restart without triggering state changes
-        try {
-          if (recognitionRef.current) {
-            recognitionRef.current.stop();
-            
-            // Create new recognition instance with updated language
-            setTimeout(() => {
-              recognitionRef.current = initRecognition();
-              if (recognitionRef.current) {
-                recognitionRef.current.start();
-              }
-            }, 300);
-          }
-        } catch (e) {
-          console.error('Error restarting recognition:', e);
-        }
-      }
-    }
-  }, [sourceLanguage, isListening, initRecognition]);
-
   // Return public API
   return {
     isListening,
@@ -447,7 +407,9 @@ const useLiveTranslation = ({
       if (recognitionRef.current) {
         recognitionRef.current.lang = lang;
       }
+      setSourceLanguage(lang);
     },
+    setTargetLanguage,
   };
 };
 

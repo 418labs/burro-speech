@@ -84,6 +84,7 @@ const useHuggingFaceSpeech = ({
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const prevSourceLanguageRef = useRef(sourceLanguage);
+  const prevTargetLanguageRef = useRef(targetLanguage);
   const lastActivityTimestampRef = useRef<number>(Date.now());
   const inactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -261,7 +262,9 @@ const useHuggingFaceSpeech = ({
     
     try {
       console.log('Sending audio to Hugging Face for real-time translation');
+      console.log('Current target language:', targetLanguage);
       const mappedTargetLang = mapToHFLanguageCode(targetLanguage);
+      console.log('Mapped target language:', mappedTargetLang);
       
       // Don't block on this, process async
       huggingFaceService.translateSpeech(currentAudio, {
@@ -515,7 +518,13 @@ const useHuggingFaceSpeech = ({
     setSourceLanguage: (lang: string) => {
       // This is part of the useLiveTranslation API
       // Language change is handled by the effect above
+      setSourceLanguage(lang);
       prevSourceLanguageRef.current = lang;
+    },
+    setTargetLanguage: (lang: string) => {
+      console.log('Hugging Face: Setting target language to:', lang);
+      setTargetLanguage(lang);
+      prevTargetLanguageRef.current = lang;
     },
   };
 };

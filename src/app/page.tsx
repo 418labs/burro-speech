@@ -1,25 +1,22 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import type { Metadata } from 'next';
-import { Mic, MicOff, Settings, X, SwitchCamera } from 'lucide-react';
+import { useState, useCallback, useRef } from 'react';
+import { Mic, MicOff, Settings, SwitchCamera } from 'lucide-react';
 
 import { UrlInputModal } from '@/components/url-input-modal';
 import { Subtitles } from '@/components/subtitles';
 import { Navbar } from '@/components/navbar';
 
 
-import { SubtitleSettings } from '@/components/subtitle-settings';
-import useLiveTranslation from '@/hooks/useLiveTranslation';
 import useHuggingFaceSpeech from '@/hooks/useHuggingFaceSpeech';
 import { LanguageSelector } from '@/components/language-selector';
 
-import { siteConfig } from '@/config/site';
-
 export default function Page() {
   const [showSettings, setShowSettings] = useState(false);
-  const [sourceLanguage, setSourceLanguage] = useState('es-ES');
-  const [targetLanguage, setTargetLanguage] = useState('en');
+  const [sourceLanguage, setSourceLanguage] = useState('es-AR');
+  const [targetLanguage, setTargetLanguage] = useState('en-US');
+  const [ translatedText, setTranslatedText] = useState('');
+  const [ originalText, setOriginalText] = useState('');
   const [contentUrl, setContentUrl] = useState('');
   const [showUrlModal, setShowUrlModal] = useState(true);
   const [useHuggingFace, setUseHuggingFace] = useState(false);
@@ -31,28 +28,26 @@ export default function Page() {
   });
 
   // Setup live translation with Next.js API route
-  const liveTranslation = useLiveTranslation({
-    sourceLanguage,
-    targetLanguage,
-    autoStart: false,
+  // Use useRef to avoid reinitializing hooks when these values change
+  const translationConfig = useRef({
+    sourceLanguage: sourceLanguage,
+    targetLanguage: targetLanguage
   });
-
+  
   // Setup Hugging Face translation
   const huggingFaceTranslation = useHuggingFaceSpeech({
-    sourceLanguage,
-    targetLanguage,
+    sourceLanguage: translationConfig.current.sourceLanguage,
+    targetLanguage: translationConfig.current.targetLanguage,
     autoStart: false,
   });
 
   // Get the active translation service based on toggle
   const {
     isListening,
-    translatedText,
-    originalText,
     error,
     startListening,
     stopListening,
-  } = useHuggingFace ? huggingFaceTranslation : liveTranslation;
+  } = useHuggingFace ? huggingFaceTranslation: huggingFaceTranslation;
 
   // Toggle translation service
   const toggleService = useCallback(() => {
@@ -82,7 +77,12 @@ export default function Page() {
       {/* URL Input Modal */}
       {showUrlModal && <UrlInputModal onSubmit={handleUrlSubmit} />}
 
-      <Navbar />
+      <Navbar
+        settings={subtitleSettings}
+        onChange={setSubtitleSettings}
+        setTranslatedText={setTranslatedText}
+        setOriginalText={setOriginalText}
+      />
 
       {/* Main content area (iframe with the provided URL) */}
       <div className='flex-1 relative w-full h-full'>
@@ -155,6 +155,12 @@ export default function Page() {
               <label className="block text-xs mb-1 text-gray-500">To</label>
               <LanguageSelector value={targetLanguage} onChange={(lang) => {
                 setTargetLanguage(lang);
+                // Update the target language in the active translation service
+                if (useHuggingFace) {
+                  huggingFaceTranslation.setTargetLanguage(lang);
+                } else {
+                  liveTranslation.setTargetLanguage(lang);
+                }
                 // If actively listening, we need to stop and restart to apply the new language
                 if (isListening) {
                   stopListening();

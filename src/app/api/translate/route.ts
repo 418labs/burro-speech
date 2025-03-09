@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ translation: '' });
     }
     
-    console.log(`Translating: "${text}" from ${sourceLanguage} to ${targetLanguage}`);
+    console.log(`Translating: "${text}" from ${sourceLanguage} to ${targetLanguage} (Target language code: ${targetLanguage})`);
     
     let translation = '';
     
