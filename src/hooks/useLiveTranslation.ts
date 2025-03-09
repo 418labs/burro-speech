@@ -25,16 +25,24 @@ const useLiveTranslation = ({
 }: UseLiveTranslationProps) => {
   const [isListening, setIsListening] = useState(false);
   const [originalText, setOriginalText] = useState('');
-  const [translatedText, setTranslatedText] = useState('');
+  const [translatedText, setTranslatedText] = useState<string>('');
   const [error, setError] = useState('');
   const [isTranslating, setIsTranslating] = useState(false);
   
+  // References for managing subtitle content
   const recognitionRef = useRef<any>(null);
   const translationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastResultTimestampRef = useRef<number>(Date.now());
+  const inactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Line-by-line approach
+  const currentLineRef = useRef<string>(''); // Current visible line
+  const currentTranslationRef = useRef<string>(''); // Current complete translation
   
   // Initialize speech recognition
-  // Keep track of final transcript outside of the recognition callback
+  // Keep track of transcript buffers 
   const finalTranscriptRef = useRef<string>('');
+  const recentWordsBufferRef = useRef<string[]>([]); // Buffer of recent words
   
   const initRecognition = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -61,6 +69,14 @@ const useLiveTranslation = ({
     };
     
     recognition.onresult = async (event: any) => {
+      // Update timestamp to track active speaking
+      lastResultTimestampRef.current = Date.now();
+      
+      // Cancel any pending inactivity timeout
+      if (inactivityTimeoutRef.current) {
+        clearTimeout(inactivityTimeoutRef.current);
+      }
+      
       let interimTranscript = '';
       let hasNewFinalResult = false;
       
@@ -69,34 +85,60 @@ const useLiveTranslation = ({
         const transcript = event.results[i][0].transcript;
         
         if (event.results[i].isFinal) {
-          currentSession.finalTranscript += transcript + ' ';
+          // For final results, add to the buffer
+          const newWords = transcript.trim().split(/\s+/);
+          
+          // Add new words to our buffer
+          newWords.forEach((word: string) => {
+            if (word) {
+              recentWordsBufferRef.current.push(word);
+            }
+          });
+          
+          
+          currentSession.finalTranscript = recentWordsBufferRef.current.join(' '); 
           finalTranscriptRef.current = currentSession.finalTranscript;
           hasNewFinalResult = true;
+          
+          // Clear interim since we've incorporated these words as final
+          currentSession.interimTranscript = '';
         } else {
           interimTranscript += transcript;
           currentSession.interimTranscript = interimTranscript;
         }
       }
       
-      // Use final transcript for translation, show interim for immediate feedback
-      const displayText = currentSession.finalTranscript + currentSession.interimTranscript;
-      console.log('Display text:', displayText);
+      // Combine final words with any interim results for display
+      const finalWords = recentWordsBufferRef.current;
+      
+      console.log('Final words:', finalWords);
+      console.log('Interim words:', currentSession.interimTranscript);
+
+      let displayWords = [...finalWords];
+      if (currentSession.interimTranscript) {
+        const interimWords = currentSession.interimTranscript.trim().split(/\s+/);
+        displayWords = displayWords.concat(interimWords);
+      }
+      
+      const displayText = displayWords.join(' ');
+      
       setOriginalText(displayText);
       if (onTranscriptUpdate) onTranscriptUpdate(displayText);
       
-      // Only translate when we have new final results
-      if (hasNewFinalResult && currentSession.finalTranscript.trim()) {
-        // Debounce translation to avoid too many API calls
-        if (translationTimeoutRef.current) {
-          clearTimeout(translationTimeoutRef.current);
-        }
-        
-        translationTimeoutRef.current = setTimeout(async () => {
-          const textToTranslate = currentSession.finalTranscript.trim();
-          console.log('Translating:', textToTranslate);
-          await translateText(textToTranslate);
-        }, 1000);
+      // Translate in real-time using the sliding window text
+      if (translationTimeoutRef.current) {
+        clearTimeout(translationTimeoutRef.current);
       }
+      
+      // Use a shorter debounce time for real-time translation
+      translationTimeoutRef.current = setTimeout(async () => {
+        // Translate our sliding window text (only the most recent words)
+        const textToTranslate = displayText.trim();
+        if (textToTranslate) {
+          console.log('Translating sliding window text:', textToTranslate);
+          await translateText(textToTranslate);
+        }
+      }, 300); // Shorter timeout for more responsive translations
     };
     
     recognition.onerror = (event: any) => {
@@ -130,7 +172,9 @@ const useLiveTranslation = ({
     return recognition;
   }, [sourceLanguage, onTranscriptUpdate]);
   
-  // Translate text using the API
+  // No need for sentence advancement in the super simple approach
+  
+  // Translate text using the API with queue-based subtitle approach
   const translateText = async (text: string) => {
     if (!text.trim()) return;
     
@@ -155,8 +199,43 @@ const useLiveTranslation = ({
       
       const data = await response.json();
       console.log('Translation received:', data.translation);
-      setTranslatedText(data.translation);
-      if (onTranslationUpdate) onTranslationUpdate(data.translation);
+      
+      const translation = data.translation.trim();
+      
+      if (translation) {
+        console.log("Received translation:", translation);
+        
+        // Store the current translation
+        currentTranslationRef.current = translation;
+        currentLineRef.current = translation;
+        
+        // Just update with the current line - keep it simple
+        setTranslatedText(currentLineRef.current);
+        if (onTranslationUpdate) onTranslationUpdate(currentLineRef.current);
+        
+        // Update the last activity timestamp
+        lastResultTimestampRef.current = Date.now();
+        
+        // Set an inactivity timeout to clear the subtitles after a pause
+        if (inactivityTimeoutRef.current) {
+          clearTimeout(inactivityTimeoutRef.current);
+        }
+        
+        // Clear the subtitles after 1 second of inactivity
+        inactivityTimeoutRef.current = setTimeout(() => {
+          // Clear displayed text
+          setTranslatedText('');
+          setOriginalText('');
+          if (onTranslationUpdate) onTranslationUpdate('');
+          if (onTranscriptUpdate) onTranscriptUpdate('');
+          
+          // Reset word buffers to ensure we start fresh with next phrase
+          recentWordsBufferRef.current = [];
+          currentTranslationRef.current = '';
+          currentLineRef.current = '';
+          finalTranscriptRef.current = '';
+        }, 500);
+      }
     } catch (e: any) {
       console.error('Translation error:', e);
       setError(`Translation error: ${e.message}`);
@@ -217,18 +296,53 @@ const useLiveTranslation = ({
       }
     }
     
-    // Clear any pending translation requests
+    // Clear any pending timeouts
     if (translationTimeoutRef.current) {
       clearTimeout(translationTimeoutRef.current);
     }
     
-    // Translate any remaining text
-    if (finalTranscriptRef.current && finalTranscriptRef.current.trim()) {
-      console.log('Translating remaining text after stopping');
-      translateText(finalTranscriptRef.current.trim());
-      // Reset transcript after final translation
-      finalTranscriptRef.current = '';
+    if (inactivityTimeoutRef.current) {
+      clearTimeout(inactivityTimeoutRef.current);
     }
+    
+    // Do one final translation with the complete transcript
+    const finalText = originalText.trim();
+    if (finalText) {
+      console.log('Doing final translation after stopping');
+      translateText(finalText);
+      
+      // Clear any existing inactivity timeout
+      if (inactivityTimeoutRef.current) {
+        clearTimeout(inactivityTimeoutRef.current);
+      }
+      
+      // After a short delay, clear the subtitles when stopping
+      inactivityTimeoutRef.current = setTimeout(() => {
+        setOriginalText('');
+        setTranslatedText('');
+        if (onTranscriptUpdate) onTranscriptUpdate('');
+        if (onTranslationUpdate) onTranslationUpdate('');
+        
+        // Reset all translation references
+        currentTranslationRef.current = '';
+        currentLineRef.current = '';
+        inactivityTimeoutRef.current = null;
+      }, 500);
+    } else {
+      // Clear immediately if there's no text
+      setOriginalText('');
+      setTranslatedText('');
+      if (onTranscriptUpdate) onTranscriptUpdate('');
+      if (onTranslationUpdate) onTranslationUpdate('');
+      
+      // Reset all translation references
+      currentTranslationRef.current = '';
+      currentLineRef.current = '';
+    }
+    
+    // Reset all references
+    finalTranscriptRef.current = '';
+    recentWordsBufferRef.current = [];
   }, [isListening, translateText]);
   
   // Auto-start if requested - only run on mount and when autoStart changes
@@ -253,8 +367,13 @@ const useLiveTranslation = ({
         }
       }
       
+      // Clear all timeouts
       if (translationTimeoutRef.current) {
         clearTimeout(translationTimeoutRef.current);
+      }
+      
+      if (inactivityTimeoutRef.current) {
+        clearTimeout(inactivityTimeoutRef.current);
       }
     };
   }, [autoStart]); // Remove startListening from deps
