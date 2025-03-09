@@ -159,7 +159,7 @@ export default function Page() {
                 if (useHuggingFace) {
                   huggingFaceTranslation.setTargetLanguage(lang);
                 } else {
-                  liveTranslation.setTargetLanguage(lang);
+                  setTargetLanguage(lang);
                 }
                 // If actively listening, we need to stop and restart to apply the new language
                 if (isListening) {

@@ -37,7 +37,7 @@ export async function POST(request: Request) {
         ]
       });
       
-      translation = response.content[0].text;
+      translation = (response.content[0] as any).text;
     } catch (apiError: any) {
       console.error('API error:', apiError);
       translation = `[Translation error: ${apiError.message}]`;

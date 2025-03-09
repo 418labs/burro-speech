@@ -67,7 +67,7 @@ const mapToHFLanguageCode = (code: string): string => {
 
 const useHuggingFaceSpeech = ({
   sourceLanguage = 'es-ES',
-  targetLanguage = 'en',
+  targetLanguage = 'en-US',
   autoStart = false,
   onTranscriptUpdate,
   onTranslationUpdate,
@@ -129,7 +129,7 @@ const useHuggingFaceSpeech = ({
         if (event.results[i].isFinal) {
           // For final results, add to our word buffer
           const words = transcript.trim().split(/\s+/);
-          words.forEach(word => {
+          words.forEach((word: string) => {
             if (word) {
               recentWordsBufferRef.current.push(word);
             }
@@ -518,12 +518,10 @@ const useHuggingFaceSpeech = ({
     setSourceLanguage: (lang: string) => {
       // This is part of the useLiveTranslation API
       // Language change is handled by the effect above
-      setSourceLanguage(lang);
       prevSourceLanguageRef.current = lang;
     },
     setTargetLanguage: (lang: string) => {
       console.log('Hugging Face: Setting target language to:', lang);
-      setTargetLanguage(lang);
       prevTargetLanguageRef.current = lang;
     },
   };
