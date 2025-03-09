@@ -10,11 +10,15 @@ import { SubtitleSettingsProps } from './subtitle-settings';
 type NavbarProps ={
     setTranslatedText: (text: string) => void;
     setOriginalText: (text: string) => void;
+    initialSourceLanguage: string;
+    initialTargetLanguage: string;
 } & SubtitleSettingsProps;
 
 export function Navbar({
     settings: subtitleSettings,
     onChange: setSubtitleSettings,
+    initialSourceLanguage,
+    initialTargetLanguage,
     setTranslatedText,
     setOriginalText,
 }: NavbarProps) {
@@ -22,6 +26,8 @@ export function Navbar({
 
   // Setup live translation with Next.js API route
   const liveTranslation = useLiveTranslation({
+    initialSourceLanguage,
+    initialTargetLanguage,
     autoStart: false,
   });
 
@@ -65,12 +71,12 @@ export function Navbar({
           </Button>
 
           <LanguageSelector
-            value={'es-AR'}
+            value={initialSourceLanguage}
             onChange={setSourceLanguage}
           />
 
           <LanguageSelector
-            value={'en-US'}
+            value={initialTargetLanguage}
             onChange={setTargetLanguage}
           />
         </div>

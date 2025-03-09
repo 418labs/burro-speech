@@ -6,19 +6,32 @@ import { Mic, MicOff, Settings, SwitchCamera } from 'lucide-react';
 import { UrlInputModal } from '@/components/url-input-modal';
 import { Subtitles } from '@/components/subtitles';
 import { Navbar } from '@/components/navbar';
-
-
 import useHuggingFaceSpeech from '@/hooks/useHuggingFaceSpeech';
 import { LanguageSelector } from '@/components/language-selector';
+import { useSearchParams } from 'next/navigation';
+
+function validateLanguage(lang: string) {
+  const regex = /^[a-z]{2}-[A-Z]{2}$/i;
+  return regex.test(lang);
+}
+
 
 export default function Page() {
+  const searchParams = useSearchParams();
+  const url = searchParams.get('url');
+  let from = searchParams.get('from') ?? navigator.language;
+  let to = searchParams.get('to') ?? '';
+  from = validateLanguage(from) ? from : '';
+  to = validateLanguage(to) ? to : '';
+
+
   const [showSettings, setShowSettings] = useState(false);
-  const [sourceLanguage, setSourceLanguage] = useState('es-AR');
-  const [targetLanguage, setTargetLanguage] = useState('en-US');
-  const [ translatedText, setTranslatedText] = useState('');
-  const [ originalText, setOriginalText] = useState('');
-  const [contentUrl, setContentUrl] = useState('');
-  const [showUrlModal, setShowUrlModal] = useState(true);
+  const [sourceLanguage, setSourceLanguage] = useState(from);
+  const [targetLanguage, setTargetLanguage] = useState(to);
+  const [translatedText, setTranslatedText] = useState('');
+  const [originalText, setOriginalText] = useState('');
+  const [contentUrl, setContentUrl] = useState(url);
+  const [showUrlModal, setShowUrlModal] = useState(!url);
   const [useHuggingFace, setUseHuggingFace] = useState(false);
   const [subtitleSettings, setSubtitleSettings] = useState({
     fontSize: 18,
@@ -72,6 +85,8 @@ export default function Page() {
     setShowUrlModal(false);
   };
 
+  if (!url || !to) return <div>Esta es la landing</div>;
+
   return (
     <div className='relative w-full h-screen flex flex-col'>
       {/* URL Input Modal */}
@@ -82,6 +97,8 @@ export default function Page() {
         onChange={setSubtitleSettings}
         setTranslatedText={setTranslatedText}
         setOriginalText={setOriginalText}
+        initialSourceLanguage={sourceLanguage}
+        initialTargetLanguage={targetLanguage}
       />
 
       {/* Main content area (iframe with the provided URL) */}
