@@ -80,7 +80,7 @@ export function FreeTrialForm() {
       <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
         <div className='flex flex-col md:flex-row gap-2'>
           <div className='w-full'>
-            <Label htmlFor='url'>URL of your presentation (Canva or Google Slides)</Label>
+            <Label htmlFor='url'>URL of your presentation</Label>
             <Input
               type='url'
               id='url'
