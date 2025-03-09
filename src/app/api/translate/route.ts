@@ -32,7 +32,7 @@ export async function POST(request: Request) {
         messages: [
           {
             role: "user", 
-            content: `Translate the text from ${sourceLanguage} to ${targetLanguage}. Return only the translation without any explanations or additional text: <text>${text}</text>`
+            content: `Take the text between tags and translate it from ${sourceLanguage} to ${targetLanguage}. Return only the translation without any explanations or additional text: <text>${text}</text>`
           }
         ]
       });
