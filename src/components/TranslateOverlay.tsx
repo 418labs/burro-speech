@@ -10,8 +10,6 @@ import useHuggingFaceSpeech from '@/hooks/useHuggingFaceSpeech';
 import { LanguageSelector } from '@/components/language-selector';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-
-
 function validateLanguage(lang: string) {
   if (!lang) return false;
   const regex = /^[a-z]{2}-[A-Z]{2}$/i;
@@ -22,8 +20,8 @@ export default function TranslateOverlay() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [showSettings, setShowSettings] = useState(false);
-  const [sourceLanguage, setSourceLanguage] = useState('');
-  const [targetLanguage, setTargetLanguage] = useState('');
+  const [sourceLanguage, setSourceLanguage] = useState(searchParams.get('from') ?? navigator.language);
+  const [targetLanguage, setTargetLanguage] = useState(searchParams.get('to') ?? '');
   const [translatedText, setTranslatedText] = useState('');
   const [originalText, setOriginalText] = useState('');
   const [contentUrl, setContentUrl] = useState('');
