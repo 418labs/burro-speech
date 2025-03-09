@@ -35,8 +35,8 @@ export function SubtitleSettings({ settings, onChange }: SubtitleSettingsProps) 
 
   return (
     <div className='space-y-4'>
-      <div>
-        <label className='block text-sm font-medium mb-1'>Tamaño de texto: {settings.fontSize}px</label>
+      <div className='flex flex-col gap-2'>
+        <label className='block text-sm font-medium mb-1'>Font: {settings.fontSize}px</label>
         <input
           type='range'
           min='16'
@@ -47,8 +47,8 @@ export function SubtitleSettings({ settings, onChange }: SubtitleSettingsProps) 
         />
       </div>
 
-      <div>
-        <label className='block text-sm font-medium mb-1'>Posición</label>
+      <div className='flex flex-col gap-2'>
+        <label className='block text-sm font-medium mb-1'>Position</label>
         <div className='flex gap-2'>
           <button
             onClick={() => handlePositionChange('top')}
@@ -56,7 +56,7 @@ export function SubtitleSettings({ settings, onChange }: SubtitleSettingsProps) 
               settings.position === 'top' ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700'
             }`}
           >
-            Superior
+            Top
           </button>
           <button
             onClick={() => handlePositionChange('bottom')}
@@ -64,13 +64,13 @@ export function SubtitleSettings({ settings, onChange }: SubtitleSettingsProps) 
               settings.position === 'bottom' ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700'
             }`}
           >
-            Inferior
+            Bottom
           </button>
         </div>
       </div>
 
-      <div>
-        <label className='block text-sm font-medium mb-1'>Color de texto</label>
+      <div className='flex flex-col gap-2'>
+        <label className='block text-sm font-medium mb-1'>Text</label>
         <div className='flex gap-2'>
           {colors.map((color) => (
             <button
@@ -86,10 +86,9 @@ export function SubtitleSettings({ settings, onChange }: SubtitleSettingsProps) 
         </div>
       </div>
 
-      <div>
+      <div className='flex flex-col gap-2'>
         <label className='block text-sm font-medium mb-1'>
-          Opacidad del fondo:{' '}
-          {Number.parseInt((Number.parseFloat(settings.backgroundColor.split(',')[3]) * 100).toString())}%
+          Background: {Number.parseInt((Number.parseFloat(settings.backgroundColor.split(',')[3]) * 100).toString())}%
         </label>
         <div className='flex gap-2'>
           {bgOpacities.map((opacity) => (
