@@ -104,4 +104,4 @@ class HuggingFaceService {
 }
 
 
-export const huggingFaceService = new HuggingFaceService();
+export const  huggingFaceService = new HuggingFaceService();
