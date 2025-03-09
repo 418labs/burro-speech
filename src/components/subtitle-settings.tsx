@@ -2,7 +2,7 @@
 
 import type React from 'react';
 
-interface SubtitleSettingsProps {
+export interface SubtitleSettingsProps {
   settings: {
     fontSize: number;
     position: string;
