@@ -29,7 +29,7 @@ export function Navbar({
   const liveTranslation = useLiveTranslation({
     initialSourceLanguage,
     initialTargetLanguage,
-    autoStart: false,
+    autoStart: true,
   });
 
   const {
@@ -57,6 +57,14 @@ export function Navbar({
       startListening();
     }
   }, [isListening, startListening, stopListening]);
+
+  useEffect(() => {
+  setSourceLanguage(initialSourceLanguage);
+}, [initialSourceLanguage, setSourceLanguage]);
+
+useEffect(() => {
+  setTargetLanguage(initialTargetLanguage);
+}, [initialTargetLanguage, setTargetLanguage]);
 
   return (
     <>

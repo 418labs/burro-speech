@@ -260,12 +260,6 @@ const useLiveTranslation = ({
 
   // Start listening
   const startListening = useCallback(() => {
-    // Don't start if already listening
-    if (isListening) {
-      console.log('Already listening, skipping startListening call');
-      return;
-    }
-    
     console.log('Starting speech recognition');
     setError('');
     
@@ -286,7 +280,7 @@ const useLiveTranslation = ({
         setIsListening(false);
       }
     }
-  }, [isListening, initRecognition]);
+  }, [initRecognition]);
   
   // Stop listening
   const stopListening = useCallback(() => {
@@ -368,35 +362,20 @@ const useLiveTranslation = ({
   // Auto-start if requested - only run on mount and when autoStart changes
   useEffect(() => {
     console.log('Auto-start effect running, autoStart:', autoStart);
+    let isMounted = true;
     
     if (autoStart && !isListening) {
       // Use a timeout to avoid immediate start conflicts
       setTimeout(() => {
-        startListening();
+        if (isMounted) {
+          startListening();
+        }
       }, 100);
     }
-    
-    // Cleanup function
     return () => {
-      console.log('Clean up effect');
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (e) {
-          console.error('Error cleaning up speech recognition:', e);
-        }
-      }
-      
-      // Clear all timeouts
-      if (translationTimeoutRef.current) {
-        clearTimeout(translationTimeoutRef.current);
-      }
-      
-      if (inactivityTimeoutRef.current) {
-        clearTimeout(inactivityTimeoutRef.current);
-      }
+      isMounted = false;
     };
-  }, [autoStart]); // Remove startListening from deps
+  }, [autoStart, startListening]);
   
   // Return public API
   return {
