@@ -34,6 +34,7 @@ const useLiveTranslation = ({
   const translationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastResultTimestampRef = useRef<number>(Date.now());
   const inactivityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const subtituleDisplayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Line-by-line approach
   const currentLineRef = useRef<string>(''); // Current visible line
@@ -75,6 +76,9 @@ const useLiveTranslation = ({
       // Cancel any pending inactivity timeout
       if (inactivityTimeoutRef.current) {
         clearTimeout(inactivityTimeoutRef.current);
+      }
+      if (subtituleDisplayTimeoutRef.current) {
+        clearTimeout(subtituleDisplayTimeoutRef.current);
       }
       
       let interimTranscript = '';
@@ -138,7 +142,7 @@ const useLiveTranslation = ({
           console.log('Translating sliding window text:', textToTranslate);
           await translateText(textToTranslate);
         }
-      }, 300); // Shorter timeout for more responsive translations
+      }, 250); // Shorter timeout for more responsive translations
     };
     
     recognition.onerror = (event: any) => {
@@ -220,21 +224,26 @@ const useLiveTranslation = ({
         if (inactivityTimeoutRef.current) {
           clearTimeout(inactivityTimeoutRef.current);
         }
+        if (subtituleDisplayTimeoutRef.current) {
+          clearTimeout(subtituleDisplayTimeoutRef.current);
+        }
         
-        // Clear the subtitles after 1 second of inactivity
         inactivityTimeoutRef.current = setTimeout(() => {
           // Clear displayed text
-          setTranslatedText('');
           setOriginalText('');
-          if (onTranslationUpdate) onTranslationUpdate('');
           if (onTranscriptUpdate) onTranscriptUpdate('');
           
           // Reset word buffers to ensure we start fresh with next phrase
           recentWordsBufferRef.current = [];
+          finalTranscriptRef.current = '';
+        }, 250);
+        subtituleDisplayTimeoutRef.current = setTimeout(() => {
+          // Display the current line
+          setTranslatedText('');
+          if (onTranslationUpdate) onTranslationUpdate('');
           currentTranslationRef.current = '';
           currentLineRef.current = '';
-          finalTranscriptRef.current = '';
-        }, 500);
+        }, 3000);
       }
     } catch (e: any) {
       console.error('Translation error:', e);
@@ -304,6 +313,9 @@ const useLiveTranslation = ({
     if (inactivityTimeoutRef.current) {
       clearTimeout(inactivityTimeoutRef.current);
     }
+    if (subtituleDisplayTimeoutRef.current) {
+      clearTimeout(subtituleDisplayTimeoutRef.current);
+    }
     
     // Do one final translation with the complete transcript
     const finalText = originalText.trim();
@@ -314,6 +326,9 @@ const useLiveTranslation = ({
       // Clear any existing inactivity timeout
       if (inactivityTimeoutRef.current) {
         clearTimeout(inactivityTimeoutRef.current);
+      }
+      if (subtituleDisplayTimeoutRef.current) {
+        clearTimeout(subtituleDisplayTimeoutRef.current);
       }
       
       // After a short delay, clear the subtitles when stopping
@@ -327,7 +342,7 @@ const useLiveTranslation = ({
         currentTranslationRef.current = '';
         currentLineRef.current = '';
         inactivityTimeoutRef.current = null;
-      }, 500);
+      }, 250);
     } else {
       // Clear immediately if there's no text
       setOriginalText('');
