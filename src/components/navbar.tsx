@@ -70,7 +70,7 @@ useEffect(() => {
     <>
       <div className='absolute z-10 right-4 flex items-center justify-center h-full group'>
         {isListening && (
-          <div className='absolute top-4 right-4 flex items-center gap-1 text-xs bg-black text-white px-2 py-1 rounded-full z-20'>
+          <div className='absolute top-4 right-4 flex items-center gap-1 text-xs bg-destructive text-white px-2 py-1 rounded-full z-20'>
             <Mic size={12} /> Listening
           </div>
         )}
@@ -88,16 +88,18 @@ useEffect(() => {
             <Settings />
           </Button>
 
+          {/*
           <Label htmlFor='from'>From</Label>
           <LanguageSelector
             label='From'
             id='from'
-            value={initialSourceLanguage || 'pt-PT'}
+            value={initialSourceLanguage}
             onChange={setSourceLanguage}
           />
 
           <Label htmlFor='to'>To</Label>
           <LanguageSelector label='To' id='to' value={initialTargetLanguage} onChange={setTargetLanguage} />
+          */}
         </div>
       </div>
 

@@ -23,7 +23,7 @@ export function LanguageSelector({ label, id, value: initialValue, onChange }: L
         setSelectedLanguage(value);
       }}
     >
-      <SelectTrigger className='w-[80px]'>
+      <SelectTrigger className='w-[60px]'>
         <SelectValue placeholder={label} />
       </SelectTrigger>
       <SelectContent>

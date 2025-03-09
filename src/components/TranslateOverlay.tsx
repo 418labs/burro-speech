@@ -12,8 +12,6 @@ function validateLanguage(lang: string) {
   return regex.test(lang);
 }
 
-const DEFAULT_SOURCE_LANGUAGE = 'pt-BR';
-
 export default function TranslateOverlay() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -57,7 +55,7 @@ export default function TranslateOverlay() {
         onChange={setSubtitleSettings}
         setTranslatedText={setTranslatedText}
         setOriginalText={setOriginalText}
-        initialSourceLanguage={DEFAULT_SOURCE_LANGUAGE}
+        initialSourceLanguage={sourceLanguage}
         initialTargetLanguage={targetLanguage}
       />
 

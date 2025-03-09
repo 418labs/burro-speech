@@ -15,7 +15,8 @@ export function FreeTrialForm() {
   const router = useRouter();
 
   const [url, setUrl] = useState('https://www.canva.com/design/DAGhOT00YU4/hh-AkEG99AYp4Uqe3HX4eA/view?embed');
-  const [language, setLanguage] = useState('');
+  const [languageFrom, setLanguageFrom] = useState('es-AR');
+  const [languageTo, setLanguageTo] = useState('en-US');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,7 +30,7 @@ export function FreeTrialForm() {
     }
 
     // Redirect to /app?url=''&to=''
-    router.push(`/app?url=${url}&to=${language}`);
+    router.push(`/app?url=${url}&to=${languageTo}&from=${languageFrom}`);
   };
 
   const isValidUrl = (string: string) => {
@@ -59,11 +60,31 @@ export function FreeTrialForm() {
             {error && <p className='mt-1 text-sm text-red-600'>{error}</p>}
           </div>
 
-          <div className='min-w-[80px]'>
-            <Label htmlFor='language'>To</Label>
+          <div className='min-w-[100px]'>
+            <Label htmlFor='languageFrom'>From</Label>
 
-            <Select defaultValue={language} onValueChange={setLanguage}>
-              <SelectTrigger id='language'>
+            <Select defaultValue={languageFrom} onValueChange={setLanguageFrom}>
+              <SelectTrigger id='languageFrom'>
+                <SelectValue placeholder='Lang' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>From</SelectLabel>
+                  {MOCK_LANGUAGES.map((language) => (
+                    <SelectItem key={language.code} value={language.code}>
+                      {language.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className='min-w-[100px]'>
+            <Label htmlFor='languageTo'>To</Label>
+
+            <Select defaultValue={languageTo} onValueChange={setLanguageTo}>
+              <SelectTrigger id='languageTo'>
                 <SelectValue placeholder='Lang' />
               </SelectTrigger>
               <SelectContent>
@@ -80,7 +101,7 @@ export function FreeTrialForm() {
           </div>
         </div>
 
-        <Button type='submit' size='lg' disabled={!language || !url}>
+        <Button type='submit' size='lg' disabled={!languageTo || !url || !languageFrom}>
           Try now
         </Button>
       </form>
