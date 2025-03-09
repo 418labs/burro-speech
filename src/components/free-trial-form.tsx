@@ -29,8 +29,41 @@ export function FreeTrialForm() {
       return;
     }
 
+    // Validate that it's a Canva or Google Slides URL
+    if (!url.includes('canva.com') && !url.includes('docs.google.com/presentation')) {
+      setError('Please enter a valid Canva or Google Slides URL');
+      return;
+    }
+
+    // Process URL based on service
+    let finalUrl = url;
+    
+    // For Canva: Convert /edit URLs to /view?embed
+    if (url.includes('canva.com') && url.includes('/edit')) {
+      finalUrl = url.replace('/edit', '/view?embed');
+    }
+    
+    // For Google Slides: Ensure URL has /embed
+    if (url.includes('docs.google.com/presentation')) {
+      // If URL doesn't already contain /embed, replace the last part with /embed
+      if (!url.includes('/embed')) {
+        // Extract ID from URL pattern
+        const matches = url.match(/\/d\/([^\/]+)/);
+        if (matches && matches[1]) {
+          const presentationId = matches[1];
+          // Check if URL ends with /edit or /present or similar pattern
+          if (url.match(/\/(edit|present|view|pub)($|\?)/)) {
+            finalUrl = url.replace(/\/(edit|present|view|pub)($|\?)/, '/embed$2');
+          } else {
+            // If no recognized ending, append /embed
+            finalUrl = `https://docs.google.com/presentation/d/${presentationId}/embed`;
+          }
+        }
+      }
+    }
+
     // Redirect to /app?url=''&to=''
-    router.push(`/app?url=${url}&to=${languageTo}&from=${languageFrom}`);
+    router.push(`/app?url=${finalUrl}&to=${languageTo}&from=${languageFrom}`);
   };
 
   const isValidUrl = (string: string) => {
@@ -47,14 +80,13 @@ export function FreeTrialForm() {
       <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
         <div className='flex flex-col md:flex-row gap-2'>
           <div className='w-full'>
-            <Label htmlFor='url'>URL of your presentation (Soon)</Label>
+            <Label htmlFor='url'>URL of your presentation (Canva or Google Slides)</Label>
             <Input
               type='url'
               id='url'
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder='https://canva.com/design/...'
-              disabled
+              placeholder='https://canva.com/design/... or https://docs.google.com/presentation/...'
               required
             />
             {error && <p className='mt-1 text-sm text-red-600'>{error}</p>}
