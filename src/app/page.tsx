@@ -1,5 +1,6 @@
 import { FreeTrialForm } from '@/components/free-trial-form';
 import { Logo } from '@/components/logo';
+import { Form } from '@/components/form';
 
 export default function Page() {
   return (
@@ -22,6 +23,12 @@ export default function Page() {
           </div>
         </header>
       </div>
+      <footer className='py-16 bg-black'>
+        <div className='container flex flex-col gap-4 text-center'>
+          <h2 className='text-xl font-bold text-white'>No te quedes fuera de Burro Speech</h2>
+          <Form />
+        </div>
+      </footer>
     </>
   );
 }
