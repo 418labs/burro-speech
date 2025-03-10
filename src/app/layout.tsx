@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
-import { GoogleAnalytics } from '@next/third-parties/google';
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 
 import { siteConfig } from '@/config/site';
 
@@ -47,6 +47,7 @@ export default function RootLayout({
         <div className='relative overflow-x-hidden flex flex-col w-screen min-h-screen bg-background'>{children}</div>
         <Analytics />
         <GoogleAnalytics gaId={GOOGLE_ANALYTICS} />
+        <GoogleTagManager gtmId='GTM-T2CVS2CN' />
       </body>
     </html>
   );
