@@ -25,7 +25,7 @@ export default function Page() {
       </div>
       <footer className='py-16 bg-black'>
         <div className='container flex flex-col gap-4 text-center'>
-          <h2 className='text-xl font-bold text-white'>Don't miss out on Burro Speech</h2>
+          <h2 className='text-xl font-bold text-white'>Contact us</h2>
           <Form />
         </div>
       </footer>

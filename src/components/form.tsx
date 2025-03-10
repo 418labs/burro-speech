@@ -49,7 +49,7 @@ export function Form(props: any) {
             {...props}
             className='pr-30'
             type={'email'}
-            placeholder={'you@email.com'}
+            placeholder={'your@email.com'}
             value={value}
             onChange={(e) => setValue(e.target.value)}
             disabled={registered}
@@ -61,14 +61,14 @@ export function Form(props: any) {
               id={'cta-landing-join-waitlist-email'}
               disabled={!value || disabled || registered}
             >
-              Join Waitlist
+              Send
             </Button>
           </div>
         </div>
       </form>
       {registered && (
         <div className=''>
-          <p className='text-muted-foreground'>Thanks for joining our waitlist!</p>
+          <p className='text-muted-foreground'>Thanks!</p>
         </div>
       )}
     </div>
