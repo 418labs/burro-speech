@@ -1,6 +1,6 @@
 # Burro-Speech
 
-...
+AI-powered live translation for events, meetings or workshops
 
 [![...](./public/images/screenshot.png)](https://burro-speech.vercel.app/)
 
