@@ -1,6 +1,7 @@
 'use client';
 
 import type React from 'react';
+import { AArrowDown, AArrowUp, AlignEndHorizontal, AlignStartHorizontal, Minus, Plus } from 'lucide-react';
 
 export interface SubtitleSettingsProps {
   settings: {
@@ -33,74 +34,110 @@ export function SubtitleSettings({ settings, onChange }: SubtitleSettingsProps) 
     onChange({ ...settings, backgroundColor: bgColor });
   };
 
-  return (
-    <div className='space-y-4'>
-      <div className='flex flex-col gap-2'>
-        <label className='block text-sm font-medium mb-1'>Font: {settings.fontSize}px</label>
-        <input
-          type='range'
-          min='16'
-          max='36'
-          value={settings.fontSize}
-          onChange={handleFontSizeChange}
-          className='w-full'
-        />
-      </div>
+  const backgroundValue = Number.parseFloat(settings.backgroundColor.split(',')[3]);
 
-      <div className='flex flex-col gap-2'>
-        <label className='block text-sm font-medium mb-1'>Position</label>
-        <div className='flex gap-2'>
+  return (
+    <div className='flex flex-col bg-black/85 backdrop-blur-md text-white'>
+      {/* Position */}
+      <div className='flex items-center gap-2 p-2'>
+        <div className='flex flex-col flex-1'>
+          <h3 className=''>Position</h3>
+          <span className='text-sm text-muted-foreground'>{settings.position === 'top' ? 'Top' : 'Bottom'}</span>
+        </div>
+        <div className='overflow-hidden flex gap-[1px] h-auto rounded-lg'>
           <button
             onClick={() => handlePositionChange('top')}
-            className={`px-3 py-1 rounded text-sm ${
-              settings.position === 'top' ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700'
+            className={`flex justify-center items-center h-10 w-10 ${
+              settings.position === 'top' ? 'bg-white/30 text-white' : 'bg-white/10 text-white hover:bg-white/25'
             }`}
           >
-            Top
+            <AlignStartHorizontal size={18} />
           </button>
           <button
             onClick={() => handlePositionChange('bottom')}
-            className={`px-3 py-1 rounded text-sm ${
-              settings.position === 'bottom' ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700'
+            className={`flex justify-center items-center h-10 w-10 ${
+              settings.position === 'bottom' ? 'bg-white/30 text-white' : 'bg-white/10 text-white hover:bg-white/25'
             }`}
           >
-            Bottom
+            <AlignEndHorizontal size={18} />
           </button>
         </div>
       </div>
 
-      <div className='flex flex-col gap-2'>
-        <label className='block text-sm font-medium mb-1'>Text</label>
-        <div className='flex gap-2'>
+      {/* Background */}
+      <div className='flex items-center gap-2 p-2'>
+        <div className='flex flex-col flex-1'>
+          <h3 className=''>Background</h3>
+          <span className='text-sm text-muted-foreground'>{Number.parseInt((backgroundValue * 100).toString())}%</span>
+        </div>
+        <div className='overflow-hidden flex gap-[1px] rounded-lg '>
+          <button
+            className={`flex justify-center items-center h-10 w-10 bg-white/10 text-white hover:bg-white/25 disabled:hover:bg-white/10 disabled:opacity-35 disabled:cursor-not-allowed`}
+            disabled={backgroundValue === 0.25}
+            onClick={() => {
+              handleBgOpacityChange(backgroundValue - 0.25);
+            }}
+          >
+            <Minus size={18} />
+          </button>
+          <button
+            className={`flex justify-center items-center h-10 w-10 bg-white/10 text-white hover:bg-white/25 disabled:hover:bg-white/10 disabled:opacity-35 disabled:cursor-not-allowed`}
+            disabled={backgroundValue === 1}
+            onClick={() => {
+              handleBgOpacityChange(backgroundValue + 0.25);
+            }}
+          >
+            <Plus size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* Font */}
+      <div className='flex items-center gap-2 p-2'>
+        <div className='flex flex-col flex-1'>
+          <h3 className=''>Font</h3>
+          <span className='text-sm text-muted-foreground capitalize'>{settings.fontSize}px</span>
+        </div>
+        <div className='overflow-hidden flex gap-[1px] rounded-lg'>
+          <button
+            className={`flex justify-center items-center h-10 w-10 bg-white/10 text-white hover:bg-white/25 disabled:hover:bg-white/10 disabled:opacity-35 disabled:cursor-not-allowed`}
+            disabled={settings.fontSize === 16}
+            onClick={() => {
+              handleFontSizeChange({ target: { value: settings.fontSize - 4 } } as any);
+            }}
+          >
+            <AArrowDown size={18} />
+          </button>
+          <button
+            className={`flex justify-center items-center h-10 w-10 bg-white/10 text-white hover:bg-white/25 disabled:hover:bg-white/10 disabled:opacity-35 disabled:cursor-not-allowed`}
+            disabled={settings.fontSize === 36}
+            onClick={() => {
+              handleFontSizeChange({ target: { value: settings.fontSize + 4 } } as any);
+            }}
+          >
+            <AArrowUp size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* Color */}
+      <div className='flex items-center gap-2 p-2'>
+        <div className='flex flex-col flex-1'>
+          <h3 className=''>Color</h3>
+          <span className='text-sm text-muted-foreground capitalize'>{settings.textColor}</span>
+        </div>
+        <div className='overflow-hidden flex gap-[1px] rounded-lg'>
           {colors.map((color) => (
             <button
               key={color}
               onClick={() => handleTextColorChange(color)}
-              className={`w-8 h-8 rounded-full border ${
-                settings.textColor === color ? 'ring-2 ring-primary ring-offset-2' : ''
+              className={`flex justify-center items-center h-10 w-10 ${
+                settings.textColor === color ? 'bg-white/30 text-white' : 'bg-white/10 text-white hover:bg-white/25'
               }`}
-              style={{ backgroundColor: color }}
               aria-label={`Color ${color}`}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className='flex flex-col gap-2'>
-        <label className='block text-sm font-medium mb-1'>
-          Background: {Number.parseInt((Number.parseFloat(settings.backgroundColor.split(',')[3]) * 100).toString())}%
-        </label>
-        <div className='flex gap-2'>
-          {bgOpacities.map((opacity) => (
-            <button
-              key={opacity}
-              onClick={() => handleBgOpacityChange(opacity)}
-              className={`w-8 h-8 rounded border ${
-                settings.backgroundColor === `rgba(0, 0, 0, ${opacity})` ? 'ring-2 ring-primary ring-offset-2' : ''
-              }`}
-              style={{ backgroundColor: `rgba(0, 0, 0, ${opacity})` }}
-              aria-label={`Opacidad ${opacity * 100}%`}
-            />
+            >
+              <div className={`w-5 h-5 rounded-full`} style={{ backgroundColor: color }}></div>
+            </button>
           ))}
         </div>
       </div>
