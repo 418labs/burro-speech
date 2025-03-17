@@ -22,7 +22,7 @@ export default function TranslateOverlay() {
   const [contentUrl, setContentUrl] = useState('');
   const [showUrlModal, setShowUrlModal] = useState(true);
   const [subtitleSettings, setSubtitleSettings] = useState({
-    fontSize: 18,
+    fontSize: 16,
     position: 'bottom', // "top", "bottom"
     textColor: 'white',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',

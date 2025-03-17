@@ -1,12 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Mic, MicOff, Settings, X } from 'lucide-react';
+import Link from 'next/link';
+import { Home, Mic, MicOff, Settings } from 'lucide-react';
 
-import { LanguageSelector } from './language-selector';
-import { SubtitleSettings } from './subtitle-settings';
-import { Button } from './ui/button';
 import useLiveTranslation from '@/hooks/useLiveTranslation';
-import { SubtitleSettingsProps } from './subtitle-settings';
-import { Label } from './ui/label';
+
+import { Button } from './ui/button';
+import { SubtitleSettings, SubtitleSettingsProps } from './subtitle-settings';
 
 type NavbarProps = {
   setTranslatedText: (text: string) => void;
@@ -49,6 +48,7 @@ export function Navbar({
   useEffect(() => {
     setTranslatedText(translatedText);
   }, [translatedText]);
+
   // Toggle recording function
   const toggleRecording = useCallback(() => {
     if (isListening) {
@@ -59,32 +59,41 @@ export function Navbar({
   }, [isListening, startListening, stopListening]);
 
   useEffect(() => {
-  setSourceLanguage(initialSourceLanguage);
-}, [initialSourceLanguage, setSourceLanguage]);
+    setSourceLanguage(initialSourceLanguage);
+  }, [initialSourceLanguage, setSourceLanguage]);
 
-useEffect(() => {
-  setTargetLanguage(initialTargetLanguage);
-}, [initialTargetLanguage, setTargetLanguage]);
+  useEffect(() => {
+    setTargetLanguage(initialTargetLanguage);
+  }, [initialTargetLanguage, setTargetLanguage]);
 
   return (
     <>
-      <div className='absolute z-10 right-4 flex items-center justify-center h-full group'>
-        {isListening && (
-          <div className='absolute top-4 right-4 flex items-center gap-1 text-xs bg-destructive text-white px-2 py-1 rounded-full z-20'>
-            <Mic size={12} /> Listening
-          </div>
-        )}
+      {isListening && (
+        <div className='absolute top-4 right-4 flex items-center gap-1 text-xs bg-destructive text-white px-2 py-1 rounded-full z-20'>
+          <Mic size={12} /> Listening
+        </div>
+      )}
 
+      <div className={`group absolute z-10 top-0 left-0 flex items-center w-full h-20 p-4`}>
         <div
-          className={`flex flex-col items-center gap-2 p-4 bg-white shadow-xl border rounded-xl duration-700 ${
-            isListening ? 'translate-x-60 group-hover:translate-x-0' : 'translate-x-0'
+          className={`flex items-center gap-1 p-2 bg-black rounded-full duration-500 ${
+            isListening && !showSettings ? '-translate-y-20 group-hover:translate-y-0' : 'translate-y-0'
           }`}
         >
-          <Button size='lg' variant={isListening ? 'destructive' : 'default'} onClick={toggleRecording}>
+          <Button size='icon' variant='default' asChild>
+            <Link href='/'>
+              <Home />
+            </Link>
+          </Button>
+          <Button size='icon' variant={isListening ? 'destructive' : 'outline'} onClick={toggleRecording}>
             {isListening ? <MicOff /> : <Mic />}
           </Button>
-
-          <Button size='lg' variant='outline' onClick={() => setShowSettings(!showSettings)} aria-label='Configuración'>
+          <Button
+            size='icon'
+            variant='default'
+            onClick={() => setShowSettings(!showSettings)}
+            aria-label='Configuración'
+          >
             <Settings />
           </Button>
 
@@ -104,17 +113,13 @@ useEffect(() => {
       </div>
 
       {showSettings && (
-        <div className='absolute right-4 top-20 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-4 m-4 w-80 z-20'>
-          <div className='flex justify-between items-center mb-4'>
-            <h3 className='font-medium'>Settings</h3>
-            <button
-              onClick={() => setShowSettings(false)}
-              className='text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-            >
-              <X size={20} />
-            </button>
+        <div className='absolute z-20 top-20 left-4 flex'>
+          <div className='overflow-hidden w-80 rounded-xl'>
+            <div className='px-3 py-2 bg-black/80 backdrop-blur-md border-b border-white/15 text-center'>
+              <h3 className='text-white/65 font-medium'>Settings</h3>
+            </div>
+            <SubtitleSettings settings={subtitleSettings} onChange={setSubtitleSettings} />
           </div>
-          <SubtitleSettings settings={subtitleSettings} onChange={setSubtitleSettings} />
         </div>
       )}
     </>
