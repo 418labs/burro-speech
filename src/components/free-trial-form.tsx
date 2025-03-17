@@ -1,4 +1,4 @@
-// components/free-trial-form.tsx (modified)
+'use client'
 import { useState, useEffect } from "react";
 import { AuthModal } from "@/components/auth/auth-modal";
 import { TrialTimer } from "@/components/trial-timer";

@@ -5,10 +5,29 @@ import { headers } from "next/headers";
 import TranslateOverlay from "@/components/TranslateOverlay";
 import { Suspense } from "react";
 
-export default async function TranslatePage({ searchParams }) {
+type SearchParams = {
+  url?: string;
+  from?: string;
+  to?: string;
+};
+
+export default async function TranslatePage({ 
+  searchParams 
+}: { 
+  searchParams: SearchParams 
+}) {
   // Check if user is authenticated
+  // Convert the headers to the format expected by Better Auth
+  const headersList = headers();
+  const headerEntries = Array.from((await headersList).entries());
+  const headersObject = new Headers();
+
+  headerEntries.forEach(([key, value]) => {
+    headersObject.append(key, value);
+  });
+
   const session = await auth.api.getSession({
-    headers: headers(),
+    headers: headersObject,
   });
 
   // Get URL parameters

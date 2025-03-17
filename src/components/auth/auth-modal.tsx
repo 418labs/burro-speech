@@ -1,31 +1,11 @@
-// components/auth/auth-modal.tsx
+'use client'
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Form } from "@/components/form";
 import { authClient } from "@/lib/auth-client";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-
-// Schema for sign in validation
-const signInSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters long" }),
-});
-
-// Schema for sign up validation
-const signUpSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters long" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters long" }),
-});
-
-type SignInFormValues = z.infer<typeof signInSchema>;
-type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export function AuthModal({
   isOpen,
@@ -39,33 +19,56 @@ export function AuthModal({
   const [activeTab, setActiveTab] = useState<"signin" | "signup">(defaultTab);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const signInForm = useForm<SignInFormValues>({
-    resolver: zodResolver(signInSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const signUpForm = useForm<SignUpFormValues>({
-    resolver: zodResolver(signUpSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-    },
-  });
+  
+  // Form state for sign in
+  const [signInEmail, setSignInEmail] = useState("");
+  const [signInPassword, setSignInPassword] = useState("");
+  
+  // Form state for sign up
+  const [signUpName, setSignUpName] = useState("");
+  const [signUpEmail, setSignUpEmail] = useState("");
+  const [signUpPassword, setSignUpPassword] = useState("");
+  
+  // Basic validation
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [nameError, setNameError] = useState("");
 
   // Handle sign in with email/password
-  const handleSignIn = async (data: SignInFormValues) => {
-    setIsLoading(true);
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Reset errors
+    setEmailError("");
+    setPasswordError("");
     setError("");
+    
+    // Simple validation
+    let hasError = false;
+    if (!signInEmail) {
+      setEmailError("Email is required");
+      hasError = true;
+    } else if (!signInEmail.includes('@')) {
+      setEmailError("Please enter a valid email address");
+      hasError = true;
+    }
+    
+    if (!signInPassword) {
+      setPasswordError("Password is required");
+      hasError = true;
+    } else if (signInPassword.length < 8) {
+      setPasswordError("Password must be at least 8 characters long");
+      hasError = true;
+    }
+    
+    if (hasError) return;
+    
+    setIsLoading(true);
 
     try {
       await authClient.signIn.email({
-        email: data.email,
-        password: data.password,
+        email: signInEmail,
+        password: signInPassword,
       });
       onClose();
     } catch (err: any) {
@@ -76,15 +79,50 @@ export function AuthModal({
   };
 
   // Handle sign up with email/password
-  const handleSignUp = async (data: SignUpFormValues) => {
-    setIsLoading(true);
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Reset errors
+    setEmailError("");
+    setPasswordError("");
+    setNameError("");
     setError("");
+    
+    // Simple validation
+    let hasError = false;
+    if (!signUpName) {
+      setNameError("Name is required");
+      hasError = true;
+    } else if (signUpName.length < 2) {
+      setNameError("Name must be at least 2 characters long");
+      hasError = true;
+    }
+    
+    if (!signUpEmail) {
+      setEmailError("Email is required");
+      hasError = true;
+    } else if (!signUpEmail.includes('@')) {
+      setEmailError("Please enter a valid email address");
+      hasError = true;
+    }
+    
+    if (!signUpPassword) {
+      setPasswordError("Password is required");
+      hasError = true;
+    } else if (signUpPassword.length < 8) {
+      setPasswordError("Password must be at least 8 characters long");
+      hasError = true;
+    }
+    
+    if (hasError) return;
+    
+    setIsLoading(true);
 
     try {
       await authClient.signUp.email({
-        email: data.email,
-        password: data.password,
-        name: data.name,
+        email: signUpEmail,
+        password: signUpPassword,
+        name: signUpName,
       });
       onClose();
     } catch (err: any) {
@@ -110,7 +148,7 @@ export function AuthModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
@@ -136,28 +174,30 @@ export function AuthModal({
           )}
 
           <TabsContent value="signin">
-            <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-4 py-4">
+            <form onSubmit={handleSignIn} className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="signin-email">Email</Label>
                 <Input
-                  id="email"
+                  id="signin-email"
                   type="email"
                   placeholder="you@example.com"
-                  {...signInForm.register("email")}
+                  value={signInEmail}
+                  onChange={(e) => setSignInEmail(e.target.value)}
                 />
-                {signInForm.formState.errors.email && (
-                  <p className="text-destructive text-sm">{signInForm.formState.errors.email.message}</p>
+                {emailError && (
+                  <p className="text-destructive text-sm">{emailError}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="signin-password">Password</Label>
                 <Input
-                  id="password"
+                  id="signin-password"
                   type="password"
-                  {...signInForm.register("password")}
+                  value={signInPassword}
+                  onChange={(e) => setSignInPassword(e.target.value)}
                 />
-                {signInForm.formState.errors.password && (
-                  <p className="text-destructive text-sm">{signInForm.formState.errors.password.message}</p>
+                {passwordError && (
+                  <p className="text-destructive text-sm">{passwordError}</p>
                 )}
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
@@ -191,39 +231,42 @@ export function AuthModal({
           </TabsContent>
 
           <TabsContent value="signup">
-            <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4 py-4">
+            <form onSubmit={handleSignUp} className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="signup-name">Name</Label>
                 <Input
-                  id="name"
+                  id="signup-name"
                   placeholder="John Doe"
-                  {...signUpForm.register("name")}
+                  value={signUpName}
+                  onChange={(e) => setSignUpName(e.target.value)}
                 />
-                {signUpForm.formState.errors.name && (
-                  <p className="text-destructive text-sm">{signUpForm.formState.errors.name.message}</p>
+                {nameError && (
+                  <p className="text-destructive text-sm">{nameError}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="signup-email">Email</Label>
                 <Input
-                  id="email"
+                  id="signup-email"
                   type="email"
                   placeholder="you@example.com"
-                  {...signUpForm.register("email")}
+                  value={signUpEmail}
+                  onChange={(e) => setSignUpEmail(e.target.value)}
                 />
-                {signUpForm.formState.errors.email && (
-                  <p className="text-destructive text-sm">{signUpForm.formState.errors.email.message}</p>
+                {emailError && (
+                  <p className="text-destructive text-sm">{emailError}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="signup-password">Password</Label>
                 <Input
-                  id="password"
+                  id="signup-password"
                   type="password"
-                  {...signUpForm.register("password")}
+                  value={signUpPassword}
+                  onChange={(e) => setSignUpPassword(e.target.value)}
                 />
-                {signUpForm.formState.errors.password && (
-                  <p className="text-destructive text-sm">{signUpForm.formState.errors.password.message}</p>
+                {passwordError && (
+                  <p className="text-destructive text-sm">{passwordError}</p>
                 )}
               </div>
               <Button type="submit" className="w-full" disabled={isLoading}>

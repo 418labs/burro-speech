@@ -1,4 +1,5 @@
-// components/auth/auth-status.tsx
+"use client"
+
 import { useState, useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,39 +13,58 @@ export function AuthStatus() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authTab, setAuthTab] = useState<"signin" | "signup">("signin");
 
-  useEffect(() => {
-    const checkSession = async () => {
+  // Function to check session status
+  const checkSession = async () => {
+    try {
       const sessionData = await authClient.getSession();
       setSession(sessionData);
+    } catch (error) {
+      console.error("Error fetching session:", error);
+      setSession(null);
+    } finally {
       setLoading(false);
-    };
-    
+    }
+  };
+
+  useEffect(() => {
+    // Initial session check
     checkSession();
-    
-    // Set up a subscription to session changes
-    const unsubscribe = authClient.subscribe("session", () => {
+
+    // Poll for session changes every 30 seconds
+    const intervalId = setInterval(() => {
       checkSession();
-    });
+    }, 30000);
+
+    // Set up event listeners for auth-related browser events
+    window.addEventListener("focus", checkSession);
     
     return () => {
-      unsubscribe();
+      clearInterval(intervalId);
+      window.removeEventListener("focus", checkSession);
     };
   }, []);
 
   const handleSignOut = async () => {
-    await authClient.signOut();
+    try {
+      await authClient.signOut();
+      // Immediately update our local state after signing out
+      setSession(null);
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   if (loading) {
     return <div className="h-10 w-10 rounded-full bg-muted animate-pulse"></div>;
   }
 
-  if (!session) {
+  // Check if session is null or doesn't have a user property
+  if (!session || !session.user) {
     return (
       <>
         <div className="flex gap-2">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => {
               setAuthTab("signin");
               setShowAuthModal(true);
@@ -52,8 +72,8 @@ export function AuthStatus() {
           >
             Sign In
           </Button>
-          <Button 
-            variant="default" 
+          <Button
+            variant="default"
             onClick={() => {
               setAuthTab("signup");
               setShowAuthModal(true);
@@ -72,8 +92,11 @@ export function AuthStatus() {
     );
   }
 
+  // Now we can safely destructure the user object
   const { user } = session;
-  const initials = user.name
+  
+  // Use optional chaining to safely access user.name
+  const initials = user?.name
     ? user.name
         .split(' ')
         .map((n: string) => n[0])
@@ -86,8 +109,8 @@ export function AuthStatus() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-10 w-10 rounded-full">
             <Avatar className="h-10 w-10">
-              {user.image ? (
-                <AvatarImage src={user.image} alt={user.name} />
+              {user?.image ? (
+                <AvatarImage src={user.image} alt={user.name || 'User'} />
               ) : null}
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
@@ -96,9 +119,9 @@ export function AuthStatus() {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{user.name}</p>
+              <p className="text-sm font-medium leading-none">{user?.name || 'User'}</p>
               <p className="text-xs leading-none text-muted-foreground">
-                {user.email}
+                {user?.email || 'No email'}
               </p>
             </div>
           </DropdownMenuLabel>
