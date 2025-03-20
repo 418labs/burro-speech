@@ -3,10 +3,11 @@ import { Inter } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
 import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 
+import { AuthProvider } from '@/context/auth-context';
+
 import { siteConfig } from '@/config/site';
 
 import './globals.css';
-import { MainNavbar } from '@/components/main-navbar';
 
 const GOOGLE_ANALYTICS = process.env.GOOGLE_ANALYTICS || '';
 
@@ -44,9 +45,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
-      <body className={`${inter.variable} antialiased`}>
-      <MainNavbar />
-        <div className='relative overflow-x-hidden flex flex-col w-screen min-h-screen bg-background'>{children}</div>
+      <body className={`relative ${inter.variable} antialiased`}>
+        <AuthProvider>{children}</AuthProvider>
         <Analytics />
         <GoogleAnalytics gaId={GOOGLE_ANALYTICS} />
         <GoogleTagManager gtmId='GTM-T2CVS2CN' />
