@@ -1,21 +1,26 @@
-// components/main-navbar.tsx
-import { AuthStatus } from "@/components/auth/auth-status";
-import { Logo } from "@/components/logo";
-import Link from "next/link";
+'use client';
+
+import Link from 'next/link';
+
+import { useAuth } from '@/context/auth-context';
+
+import { AuthStatus } from '@/components/auth/auth-status';
+import { Logo } from '@/components/logo';
 
 export function MainNavbar() {
+  const { user } = useAuth();
+
   return (
-    <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex h-16 items-center px-4 container mx-auto">
-        <div className="mr-4">
-          <Link href="/">
-            <Logo />
-          </Link>
-        </div>
-        <div className="flex-1"></div>
-        <div className="flex items-center gap-2">
-          <AuthStatus />
-        </div>
+    <div className='absolute top-0 z-10 w-full border-b'>
+      <div className='flex justify-between h-16 items-center px-4 container mx-auto'>
+        <Link href='/'>
+          <Logo className='max-h-12 max-w-28' />
+        </Link>
+        {user && (
+          <div>
+            <AuthStatus />
+          </div>
+        )}
       </div>
     </div>
   );
