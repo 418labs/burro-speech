@@ -1,78 +1,72 @@
 'use client';
-
-import type React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { Input } from './ui/input';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from './ui/select';
-import { Label } from './ui/label';
-import { Button } from './ui/button';
+import { authClient } from '@/lib/auth-client';
+
+import { AuthModal } from '@/components/auth/auth-modal';
+import { TrialTimer } from '@/components/trial-timer';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 import { MOCK_LANGUAGES } from '@/mock/languages';
 
 export function FreeTrialForm() {
   const router = useRouter();
-
   const [url, setUrl] = useState('https://www.canva.com/design/DAGhOT00YU4/hh-AkEG99AYp4Uqe3HX4eA/view?embed');
   const [languageFrom, setLanguageFrom] = useState('es-AR');
   const [languageTo, setLanguageTo] = useState('en-US');
   const [error, setError] = useState('');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isTrialActive, setIsTrialActive] = useState(false);
+  const [sessionData, setSessionData] = useState<any>(null);
+  const [authTab, setAuthTab] = useState<'signin' | 'signup'>('signin');
+
+  // Check for existing session
+  useEffect(() => {
+    const checkSession = async () => {
+      const session = await authClient.getSession();
+      setSessionData(session);
+    };
+
+    checkSession();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    // Validate URL
-    if (!isValidUrl(url)) {
-      setError('Por favor, introduce una URL válida');
+    // Basic URL validation
+    if (!url.startsWith('http')) {
+      setError('Please enter a valid URL');
       return;
     }
 
-    // Validate that it's a Canva or Google Slides URL
-    if (!url.includes('canva.com') && !url.includes('docs.google.com/presentation')) {
-      setError('Please enter a valid Canva or Google Slides URL');
+    // If user is logged in, redirect to the app
+    if (sessionData) {
+      router.push(`/app?url=${encodeURIComponent(url)}&to=${languageTo}&from=${languageFrom}`);
       return;
     }
 
-    // Process URL based on service
-    let finalUrl = url;
-    
-    // For Canva: Convert /edit URLs to /view?embed
-    if (url.includes('canva.com') && url.includes('/edit')) {
-      finalUrl = url.replace('/edit', '/view?embed');
-    }
-    
-    // For Google Slides: Ensure URL has /embed
-    if (url.includes('docs.google.com/presentation')) {
-      // If URL doesn't already contain /embed, replace the last part with /embed
-      if (!url.includes('/embed')) {
-        // Extract ID from URL pattern
-        const matches = url.match(/\/d\/([^\/]+)/);
-        if (matches && matches[1]) {
-          const presentationId = matches[1];
-          // Check if URL ends with /edit or /present or similar pattern
-          if (url.match(/\/(edit|present|view|pub)($|\?)/)) {
-            finalUrl = url.replace(/\/(edit|present|view|pub)($|\?)/, '/embed$2');
-          } else {
-            // If no recognized ending, append /embed
-            finalUrl = `https://docs.google.com/presentation/d/${presentationId}/embed`;
-          }
-        }
-      }
-    }
-
-    // Redirect to /app?url=''&to=''
-    router.push(`/app?url=${finalUrl}&to=${languageTo}&from=${languageFrom}`);
+    // If not logged in, start the trial
+    setIsTrialActive(true);
+    // The app will be shown directly, with a timer
   };
 
-  const isValidUrl = (string: string) => {
-    try {
-      new URL(string);
-      return true;
-    } catch (_) {
-      return false;
-    }
+  const handleTrialExpire = () => {
+    setIsTrialActive(false);
+    setAuthTab('signup'); // Default to signup when trial expires
+    setShowAuthModal(true);
   };
 
   return (
@@ -94,7 +88,6 @@ export function FreeTrialForm() {
 
           <div className='min-w-[100px]'>
             <Label htmlFor='languageFrom'>From</Label>
-
             <Select defaultValue={languageFrom} onValueChange={setLanguageFrom}>
               <SelectTrigger id='languageFrom'>
                 <SelectValue placeholder='Lang' />
@@ -114,7 +107,6 @@ export function FreeTrialForm() {
 
           <div className='min-w-[100px]'>
             <Label htmlFor='languageTo'>To</Label>
-
             <Select defaultValue={languageTo} onValueChange={setLanguageTo}>
               <SelectTrigger id='languageTo'>
                 <SelectValue placeholder='Lang' />
@@ -134,9 +126,15 @@ export function FreeTrialForm() {
         </div>
 
         <Button type='submit' size='lg' disabled={!languageTo || !url || !languageFrom}>
-          Try now
+          {sessionData ? 'Start Translating' : 'Try Now'}
         </Button>
       </form>
+
+      {/* Show trial timer if in trial mode */}
+      {isTrialActive && !sessionData && <TrialTimer duration={60} onExpire={handleTrialExpire} />}
+
+      {/* Auth modal */}
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} defaultTab={authTab} />
     </div>
   );
 }
